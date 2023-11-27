@@ -11,7 +11,7 @@ interface ICoords {
   }
 }
 
-const DEBUG = false; // Render debug physics entities
+const DEBUG = false; 
 
 function uuid(
   a?: any               // placeholder
@@ -36,8 +36,8 @@ function uuid(
 }
 
 class GameScene extends Phaser.Scene {
-  private HOST = window.location.hostname; // localhost and 127.0.0.1 handled
-  private PORT = 8080; // change this if needed
+  private HOST = window.location.hostname; 
+  private PORT = 8080; 
 
   private VELOCITY = 100;
   private wsClient?: WebSocket;
@@ -51,9 +51,7 @@ class GameScene extends Phaser.Scene {
 
   constructor() { super({ key: "GameScene" }); }
 
-  /**
-   * Load the assets required by the scene
-   */
+  
   public preload() {
     this.load.tilemapCSV("map", "static/level_map.csv");
     this.load.image("tiles", "static/tiles_16.png");
@@ -62,11 +60,8 @@ class GameScene extends Phaser.Scene {
     });
   }
 
-  /**
-   * Instantiate the private variables required by the scene
-   */
+ 
   public init() {
-    // Initialize the websocket client
     this.wsClient = new WebSocket(`ws://${this.HOST}:${this.PORT}`);
     this.wsClient.onopen = (event) => console.log(event);
 
@@ -74,15 +69,12 @@ class GameScene extends Phaser.Scene {
       const allCoords: ICoords = JSON.parse(wsMsgEvent.data);
       for (const playerId of Object.keys(allCoords)) {
         if (playerId === this.id) {
-          // we don't need to update ourselves
           continue;
         }
         const { x, y, frame } = allCoords[playerId];
         if (playerId in this.players) {
-          // We have seen this player before, update it!
           const player = this.players[playerId];
           if (player.texture.key === "__MISSING") {
-            // Player was instantiated before texture was ready, reinstantiate
             player.destroy();
             this.players[playerId] = this.add.sprite(x, y, "player", frame);
           } else {
@@ -91,18 +83,13 @@ class GameScene extends Phaser.Scene {
             player.setFrame(frame);
           }
         } else {
-          // We have not seen this player before, create it!
           this.players[playerId] = this.add.sprite(x, y, "player", frame);
         }
       }
     }
   }
 
-  /**
-   * Create the game objects required by the scene
-   */
   public create() {
-    // Create the TileMap and the Layer
     const tileMap = this.add.tilemap("map", 16, 16);
     tileMap.addTilesetImage("tiles");
     const layer = tileMap.createDynamicLayer("layer", "tiles", 0, 0);
@@ -111,7 +98,6 @@ class GameScene extends Phaser.Scene {
       layer.renderDebug(this.add.graphics(), {});
     }
 
-    // Player animations
     this.anims.create({
       key: "left",
       frames: this.anims.generateFrameNumbers("player", { start: 8, end: 9 }),
@@ -137,7 +123,6 @@ class GameScene extends Phaser.Scene {
       repeat: -1
     });
 
-    // Player game object
     this.players[this.id] = this.physics.add.sprite(48, 48, "player", 1);
     this.physics.add.collider(this.players[this.id], layer);
     this.cameras.main.startFollow(this.players[this.id]);
@@ -145,7 +130,6 @@ class GameScene extends Phaser.Scene {
       0, 0, tileMap.widthInPixels, tileMap.heightInPixels
     );
 
-    // Keyboard input bindings
     this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
     this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
     this.upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
@@ -201,8 +185,6 @@ class GameScene extends Phaser.Scene {
   }
 }
 
-
-// Phaser configuration variables
 const config: GameConfig = {
   type: Phaser.AUTO,
   width: 800,
